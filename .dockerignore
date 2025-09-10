@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+
+# VCS
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python caches
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Editor
+.vscode/
+.idea/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local data
+*.db
+*.sqlite3
+
+# Docker
+Dockerfile~

@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
+*.log
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDEs and editors
+.idea/
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Build / Dist
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environment files
+.env
+.env.*
+
+# Coverage / Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Misc
+*.sqlite3
+*.db
