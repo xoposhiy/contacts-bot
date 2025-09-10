@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.types import Message, Update
 from aiogram.client.default import DefaultBotProperties
+from contextlib import asynccontextmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s")
@@ -34,13 +35,10 @@ async def echo_text(message: Message):
 # Register router
 dp.include_router(router)
 
-# Create FastAPI app
-app = FastAPI(title="Contacts Echo Bot", version="1.0.0")
-
-
-@app.on_event("startup")
-async def on_startup():
-    # Set webhook on startup if WEBHOOK_URL is provided
+# Lifespan handler replacing deprecated on_event startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     if not WEBHOOK_SECRET:
         logger.warning("WEBHOOK_SECRET is not set; requests won't be verified via Telegram secret token header.")
     if WEBHOOK_URL:
@@ -55,15 +53,18 @@ async def on_startup():
     else:
         logger.warning("WEBHOOK_URL not set, skipping set_webhook(). Set it to your Cloud Run HTTPS URL to receive updates.")
 
+    # Yield to run the application
+    yield
 
-@app.on_event("shutdown")
-async def on_shutdown():
-    # Optional cleanup
+    # Shutdown
     try:
         await bot.delete_webhook(drop_pending_updates=False)
     except Exception as e:
         logger.exception("Failed to delete webhook: %s", e)
     await bot.session.close()
+
+# Create FastAPI app
+app = FastAPI(title="Contacts Echo Bot", version="1.0.0", lifespan=lifespan)
 
 
 @app.get("/")
