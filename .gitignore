@@ -1,4 +1,5 @@
 # Python
+**/__pycache__/
 __pycache__/
 *.py[cod]
 *.pyo
@@ -38,3 +39,4 @@ htmlcov/
 # Misc
 *.sqlite3
 *.db
+/data/sdt2025.csv

@@ -1,8 +1,8 @@
 import os
 import logging
 from fastapi import FastAPI, Request, HTTPException
-from aiogram import Bot, Dispatcher, F, Router
-from aiogram.types import Message, Update
+from aiogram import Bot, Dispatcher
+from aiogram.types import Update
 from aiogram.client.default import DefaultBotProperties
 from contextlib import asynccontextmanager
 
@@ -23,17 +23,15 @@ PORT = int(os.getenv("PORT", "8080"))
 # Initialize bot and dispatcher (aiogram v3)
 bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
-router = Router()
 
+# Routers for features loaded via importlib because 'imports' is a reserved keyword
+import importlib
+_import_mod = importlib.import_module("imports.import_commands")
+_search_mod = importlib.import_module("search.search_commands")
 
-@router.message(F.text)
-async def echo_text(message: Message):
-    """Echo any received text message back to the user."""
-    await message.reply(message.text)
-
-
-# Register router
-dp.include_router(router)
+# Register routers (order matters: commands first, then text search)
+dp.include_router(_import_mod.router)
+dp.include_router(_search_mod.router)
 
 # Lifespan handler replacing deprecated on_event startup/shutdown
 @asynccontextmanager
