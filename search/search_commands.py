@@ -74,8 +74,8 @@ async def handle_text_search(message: Message, access_service: AccessService, se
     if len(results) == 1:
         s = results[0]
         await message.answer(
-            _format_student_card(s),
-            reply_markup=_card_keyboard(s.doc_id))
+            _format_student_card(s)
+        )
         return
 
     # Multiple candidates: send plain text list with code-formatted names (for easy copy)
@@ -85,16 +85,3 @@ async def handle_text_search(message: Message, access_service: AccessService, se
             lines.append(f"- <code>{s.full_name}</code>")
     await message.answer("\n".join(lines))
 
-
-@router.callback_query(F.data.startswith("courses:"))
-async def on_courses(cb: CallbackQuery):
-    # Placeholder until Courses feature is implemented
-    await cb.answer()
-    await cb.message.answer("Courses view is not implemented yet.")
-
-
-@router.callback_query(F.data.startswith("others:"))
-async def on_others(cb: CallbackQuery):
-    # Placeholder until Others feature is implemented
-    await cb.answer()
-    await cb.message.answer("Other details view is not implemented yet.")
