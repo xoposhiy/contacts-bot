@@ -54,6 +54,7 @@ class Student(BaseModel):
     public_comment: str = ""
     secret_comment: str = ""
     matric_number: Optional[str] = None
+    doc_id: Optional[str] = Field(default=None, exclude=True)  # Firestore document ID (not stored back)
     # courses: List["Course"] = Field(default_factory=list)  # assuming Course exists
 
     @property

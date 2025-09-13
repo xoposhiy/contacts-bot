@@ -1,1 +1,1 @@
-# search package for students-related features
+from .search_commands import router

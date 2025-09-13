@@ -1,10 +1,14 @@
 import os
 import logging
 from fastapi import FastAPI, Request, HTTPException
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, BaseMiddleware
 from aiogram.types import Update
 from aiogram.client.default import DefaultBotProperties
 from contextlib import asynccontextmanager
+from google.cloud import firestore
+from search import router as search_router
+from search.search_service import SearchService
+from common.access_service import AccessService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s")
@@ -24,14 +28,24 @@ PORT = int(os.getenv("PORT", "8080"))
 bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
 
-# Routers for features loaded via importlib because 'imports' is a reserved keyword
-import importlib
-_import_mod = importlib.import_module("imports.import_commands")
-_search_mod = importlib.import_module("search.search_commands")
+# Dependency Injection: provide a Firestore client and services to all handlers via middleware
+class FirestoreMiddleware(BaseMiddleware):
+    def __init__(self, client: firestore.Client):
+        self.client = client
+        # Create services once during injection phase
+        self.search_service = SearchService(client)
+        self.access_service = AccessService(client)
 
-# Register routers (order matters: commands first, then text search)
-dp.include_router(_import_mod.router)
-dp.include_router(_search_mod.router)
+    async def __call__(self, handler, event, data):
+        data["db"] = self.client
+        data["search_service"] = self.search_service
+        data["access_service"] = self.access_service
+        return await handler(event, data)
+
+_db_client = firestore.Client()
+dp.update.middleware(FirestoreMiddleware(_db_client))
+
+dp.include_router(search_router)
 
 # Lifespan handler replacing deprecated on_event startup/shutdown
 @asynccontextmanager

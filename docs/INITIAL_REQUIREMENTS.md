@@ -33,7 +33,8 @@
   * The service class receives a Firebase client as a dependency.
   * Telegram command handlers are defined in a separate file. All complex message and buttons rendering logic goes to the separate functions.
 * Common infrastructure not related to any particular feature is implemented in a separate folder 'common'
-
+* Never create services and clients in the command handlers — receive them as a depencencies.
+* Use dependency injection to pass the client to the service. Setup the dependencies in the main.py
 ---
 
 ## Unit testing strategy
