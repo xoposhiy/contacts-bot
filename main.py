@@ -12,6 +12,8 @@ from google.cloud import firestore
 from search import router as search_router
 from search.search_service import SearchService
 from common.access_service import AccessService
+from importing import router as import_router
+from importing.import_service import ImportService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s - %(name)s: %(message)s")
@@ -38,17 +40,20 @@ class FirestoreMiddleware(BaseMiddleware):
         # Create services once during injection phase
         self.search_service = SearchService(client)
         self.access_service = AccessService(client)
+        self.import_service = ImportService(client)
 
     async def __call__(self, handler, event, data):
         data["db"] = self.client
         data["search_service"] = self.search_service
         data["access_service"] = self.access_service
+        data["import_service"] = self.import_service
         return await handler(event, data)
 
 _db_client = firestore.Client()
 dp.update.middleware(FirestoreMiddleware(_db_client))
 
 dp.include_router(search_router)
+dp.include_router(import_router)
 
 @dp.error(ExceptionTypeFilter(Exception))
 async def global_error_handler(event: ErrorEvent):
