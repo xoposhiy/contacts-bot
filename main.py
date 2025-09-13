@@ -1,8 +1,11 @@
 import os
 import logging
+import traceback
+import html
 from fastapi import FastAPI, Request, HTTPException
 from aiogram import Bot, Dispatcher, BaseMiddleware
-from aiogram.types import Update
+from aiogram.types import Update, ErrorEvent
+from aiogram.filters import ExceptionTypeFilter
 from aiogram.client.default import DefaultBotProperties
 from contextlib import asynccontextmanager
 from google.cloud import firestore
@@ -46,6 +49,31 @@ _db_client = firestore.Client()
 dp.update.middleware(FirestoreMiddleware(_db_client))
 
 dp.include_router(search_router)
+
+@dp.error(ExceptionTypeFilter(Exception))
+async def global_error_handler(event: ErrorEvent):
+    # Try to find a message to reply to
+    message = None
+    update = event.update
+    try:
+        if getattr(update, "message", None):
+            message = update.message
+        elif getattr(update, "callback_query", None) and update.callback_query.message:
+            message = update.callback_query.message
+    except Exception:
+        message = None
+
+    logger.exception("Unhandled error during update processing")
+    tb = "".join(traceback.format_exception(type(event.exception), event.exception, event.exception.__traceback__))
+    safe_tb = html.escape(tb)
+    prefix = "An error occurred while processing your request:\n<pre>"
+    suffix = "</pre>"
+    max_len = 4096 - len(prefix) - len(suffix)
+    if len(safe_tb) > max_len:
+        safe_tb = safe_tb[-max_len:]
+    if message:
+        await message.answer(f"{prefix}{safe_tb}{suffix}")
+    return True
 
 # Lifespan handler replacing deprecated on_event startup/shutdown
 @asynccontextmanager

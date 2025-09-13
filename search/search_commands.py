@@ -57,11 +57,13 @@ async def handle_text_search(message: Message, access_service: AccessService, se
     username = message.from_user.username if message.from_user else None
     user_id = message.from_user.id if message.from_user else None
 
+    query = message.text or ""
+    logger.info("Text query from user_id=%s username=%s: %r", user_id, username, query)
+
     if not await access_service.is_authorized_user(username, user_id):
         await message.answer("Access denied. Please contact the administrator to request access.")
         return
 
-    query = message.text or ""
     service = search_service
     results = service.search_students(query)
 
@@ -74,6 +76,7 @@ async def handle_text_search(message: Message, access_service: AccessService, se
         await message.answer(
             _format_student_card(s),
             reply_markup=_card_keyboard(s.doc_id))
+        return
 
     # Multiple candidates: send plain text list with code-formatted names (for easy copy)
     lines = [f"Found {len(results)} students:"]

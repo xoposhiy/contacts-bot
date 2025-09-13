@@ -43,14 +43,6 @@ def fresh_db() -> Iterator[firestore.Client]:
     Skips tests if the emulator is not available.
     """
     client = get_emulator_client_or_skip()
-    try:
-        drop_db_collections(client)
-        create_sample_db(client)
-        yield client
-    finally:
-        # noinspection PyBroadException
-        try:
-            drop_db_collections(client)
-        except Exception:
-            # Best-effort cleanup; don't fail tests due to cleanup error
-            pass
+    drop_db_collections(client)
+    create_sample_db(client)
+    yield client
